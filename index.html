@@ -20,7 +20,7 @@
 
   h1 {
     text-align: center;
-    margin-bottom: 40px; /* more space between main title and Step 1 */
+    margin-bottom: 60px; /* more space before Step 1 */
   }
 
   h2 {
@@ -29,7 +29,7 @@
   }
 
   .step {
-    margin-bottom: 60px; /* more spacing between Step 1 and Step 2 */
+    margin-bottom: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -221,11 +221,7 @@
       option.value = name;
       option.textContent = name;
       audienceSelect.appendChild(option);
-    }
-  });
-
-  Object.keys(videosCloudflare).forEach(name => {
-    if(!name.startsWith("Audience")) {
+    } else if(!name.startsWith("Audience")) {
       let option = document.createElement('option');
       option.value = name;
       option.textContent = name;
@@ -234,14 +230,18 @@
   });
 
   // -----------------------------
-  // Enable Go button
+  // Enable Go button + color
   // -----------------------------
   const goButton = document.getElementById('goButton');
   function checkSelection() {
     if(audienceSelect.value || scenarioSelect.value) {
       goButton.disabled = false;
+      goButton.style.backgroundColor = "#4CAF50";
+      goButton.style.color = "#fff";
     } else {
       goButton.disabled = true;
+      goButton.style.backgroundColor = "grey";
+      goButton.style.color = "#fff";
     }
   }
   audienceSelect.addEventListener('change', checkSelection);
@@ -289,17 +289,30 @@
     scene.setAttribute('vr-mode-ui', 'enabled: true');
     scene.setAttribute('style', 'width:100vw; height:100vh; position:fixed; top:0; left:0;');
 
+    // Create video element for videosphere
+    const videoEl = document.createElement('video');
+    videoEl.src = videosCloudflare[selection];
+    videoEl.crossOrigin = 'anonymous';
+    videoEl.loop = true;
+    videoEl.autoplay = true;
+    videoEl.setAttribute('playsinline', 'true');
+    videoEl.setAttribute('webkit-playsinline', 'true');
+    videoEl.muted = false;
+    videoEl.id = 'vrVideo';
+    document.body.appendChild(videoEl);
+    videoEl.play();
+
+    const videosphere = document.createElement('a-videosphere');
+    videosphere.setAttribute('src', '#vrVideo');
+    videosphere.setAttribute('rotation', '0 -90 0');
+    scene.appendChild(videosphere);
+
     const camera = document.createElement('a-entity');
     camera.setAttribute('id', 'cameraRig');
     camera.setAttribute('camera', '');
     camera.setAttribute('position', '0 1.6 0');
     camera.setAttribute('look-controls', '');
     scene.appendChild(camera);
-
-    const videosphere = document.createElement('a-videosphere');
-    videosphere.setAttribute('src', videosCloudflare[selection]);
-    videosphere.setAttribute('rotation', '0 -90 0');
-    scene.appendChild(videosphere);
 
     document.body.appendChild(scene);
 
