@@ -1,5 +1,6 @@
-const CACHE_NAME = 'vr-explorer-cache-v2';
+const CACHE_NAME = 'vr-explorer-cache-v3';
 
+// Core assets to cache
 const ASSETS_TO_CACHE = [
   '/',
   '/ExplorerTest12/index.html',
@@ -26,7 +27,7 @@ const CLOUD_VIDEO_FILES = [
   "https://pub-850a8ef9d4f34159a20706a415caaaf8.r2.dev/RIC01-CF.h264.mp4"
 ];
 
-// Install: cache app shell + videos
+// Install: cache core assets + Cloudflare videos
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -39,24 +40,30 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME)
-                      .map(key => caches.delete(key)))
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+      )
     )
   );
   self.clients.claim();
 });
 
-// Fetch: serve cached content if available
+// Fetch: serve cached content first, fallback to network
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
+        // Optionally cache fetched assets
         return caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, response.clone());
           return response;
         });
-      }).catch(() => new Response('Offline', {status: 503, statusText: 'Offline'}));
+      }).catch(() => {
+        // Fallback for offline or failed requests
+        return new Response('Offline or not cached', {status: 503, statusText: 'Offline'});
+      });
     })
   );
 });
