@@ -17,15 +17,43 @@
     align-items: center;
     min-height: 100vh;
   }
-  h1, h2 {
+
+  h1 {
+    text-align: center;
+    margin-bottom: 40px; /* more space between main title and Step 1 */
+  }
+
+  h2 {
     text-align: center;
     margin: 15px 0;
   }
+
+  .step {
+    margin-bottom: 60px; /* more spacing between Step 1 and Step 2 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    text-align: center;
+    font-weight: bold;
+  }
+
   select, button {
     margin: 10px 0;
     padding: 10px;
     font-size: 1rem;
+    min-width: 220px;
   }
+
+  button:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+  }
+
   .footer {
     font-size: 0.8rem;
     font-style: italic;
@@ -33,35 +61,43 @@
     margin-bottom: 20px;
     text-align: center;
   }
+
   .toggle-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-top: 15px;
+    gap: 15px;
+    margin-top: 20px;
   }
+
+  .toggle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 220px;
+  }
+
   .switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 28px;
-    margin: 8px 0;
   }
+
   .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
+
   .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-color: #555;
     transition: .4s;
     border-radius: 28px;
   }
+
   .slider:before {
     position: absolute;
     content: "";
@@ -73,17 +109,13 @@
     transition: .4s;
     border-radius: 50%;
   }
+
   input:checked + .slider {
     background-color: #4CAF50;
   }
+
   input:checked + .slider:before {
     transform: translateX(32px);
-  }
-  .step {
-    margin-bottom: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
   }
 </style>
 </head>
@@ -91,6 +123,7 @@
 
 <h1>VR Explorer</h1>
 
+<!-- Step 1 -->
 <div class="step">
   <h2>Step 1: Select Simulation</h2>
 
@@ -101,7 +134,7 @@
     </select>
   </div>
 
-  <div style="margin:10px 0;">or</div>
+  <div style="margin:10px 0; text-align:center;">or</div>
 
   <div>
     <label for="scenarioSelect">Special Scenarios:</label>
@@ -111,20 +144,21 @@
   </div>
 </div>
 
+<!-- Step 2 -->
 <div class="step">
   <h2>Step 2: Enter Simulation</h2>
   <button id="goButton" disabled>Go</button>
 
   <div class="toggle-container">
-    <div>
-      Safe Mode 1
+    <div class="toggle-item">
+      <span>Safe Mode 1</span>
       <label class="switch">
         <input type="checkbox" id="safeMode1">
         <span class="slider"></span>
       </label>
     </div>
-    <div>
-      Safe Mode 2
+    <div class="toggle-item">
+      <span>Safe Mode 2</span>
       <label class="switch">
         <input type="checkbox" id="safeMode2">
         <span class="slider"></span>
@@ -210,7 +244,6 @@
       goButton.disabled = true;
     }
   }
-
   audienceSelect.addEventListener('change', checkSelection);
   scenarioSelect.addEventListener('change', checkSelection);
 
@@ -248,7 +281,6 @@
   // VR Player with A-Frame and IPD slider
   // -----------------------------
   function startVRPlayer(selection, adjustableIPD=false) {
-    // Remove existing scene if any
     const existingScene = document.querySelector('a-scene');
     if(existingScene) existingScene.remove();
 
