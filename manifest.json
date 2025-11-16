@@ -1,12 +1,11 @@
 {
-  "name": "VR Explorer",
   "short_name": "VR Explorer",
-  "start_url": "./index.html",
+  "name": "VR Explorer",
+  "start_url": "/ExplorerTest12/index.html",
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "description": "Explore VR 360 simulations with adjustable IPD and safe mode options.",
   "icons": [
     {
       "src": "icons/icon-192.png",
