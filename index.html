@@ -80,7 +80,7 @@
     transform: translateX(32px);
   }
   .step {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -101,7 +101,7 @@
     </select>
   </div>
 
-  <div>or</div>
+  <div style="margin:10px 0;">or</div>
 
   <div>
     <label for="scenarioSelect">Special Scenarios:</label>
@@ -245,28 +245,25 @@
   });
 
   // -----------------------------
-  // VR Player with A-Frame
+  // VR Player with A-Frame and IPD slider
   // -----------------------------
   function startVRPlayer(selection, adjustableIPD=false) {
     // Remove existing scene if any
     const existingScene = document.querySelector('a-scene');
     if(existingScene) existingScene.remove();
 
-    // Create A-Frame scene
     const scene = document.createElement('a-scene');
-    scene.setAttribute('vr-mode-ui', 'enabled: true');
     scene.setAttribute('embedded', true);
+    scene.setAttribute('vr-mode-ui', 'enabled: true');
     scene.setAttribute('style', 'width:100vw; height:100vh; position:fixed; top:0; left:0;');
 
-    // Camera with IPD adjustment
     const camera = document.createElement('a-entity');
     camera.setAttribute('id', 'cameraRig');
-    camera.setAttribute('camera', 'active:true');
+    camera.setAttribute('camera', '');
     camera.setAttribute('position', '0 1.6 0');
     camera.setAttribute('look-controls', '');
     scene.appendChild(camera);
 
-    // Video sphere
     const videosphere = document.createElement('a-videosphere');
     videosphere.setAttribute('src', videosCloudflare[selection]);
     videosphere.setAttribute('rotation', '0 -90 0');
@@ -274,7 +271,6 @@
 
     document.body.appendChild(scene);
 
-    // IPD slider overlay for Safe Mode 2
     if(adjustableIPD) {
       const ipdSlider = document.createElement('input');
       ipdSlider.type = 'range';
@@ -290,14 +286,15 @@
       document.body.appendChild(ipdSlider);
 
       ipdSlider.addEventListener('input', () => {
-        // Adjust left/right eye separation in real-time
-        const cameraRig = document.querySelector('#cameraRig');
-        cameraRig.setAttribute('camera', `userHeight:1.6;`);
-        cameraRig.object3D.scale.x = ipdSlider.value / 63; // scale left/right
+        const cameraEl = document.querySelector('#cameraRig');
+        const threeCamera = cameraEl.getObject3D('camera');
+        if(threeCamera && threeCamera.cameras) {
+          threeCamera.cameras[0].eyeSep = ipdSlider.value / 100;
+          threeCamera.cameras[1].eyeSep = ipdSlider.value / 100;
+        }
       });
     }
   }
 </script>
-
 </body>
 </html>
