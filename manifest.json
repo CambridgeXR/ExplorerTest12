@@ -1,11 +1,12 @@
 {
   "name": "VR Explorer",
   "short_name": "VR Explorer",
-  "start_url": "/",
+  "description": "Explore 360 VR simulations in Cardboard mode.",
+  "start_url": "/ExplorerTest12/index.html",
   "display": "standalone",
   "orientation": "landscape",
-  "background_color": "#071026",
-  "theme_color": "#0b1220",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icons/icon-192.png",
