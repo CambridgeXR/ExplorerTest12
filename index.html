@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VR Explorer</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <style>
   body {
     margin: 0;
@@ -14,12 +15,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     min-height: 100vh;
   }
   h1, h2 {
     text-align: center;
-    margin: 10px 0;
+    margin: 15px 0;
   }
   select, button {
     margin: 10px 0;
@@ -29,7 +29,7 @@
   .footer {
     font-size: 0.8rem;
     font-style: italic;
-    margin-top: 20px;
+    margin-top: 40px;
     margin-bottom: 20px;
     text-align: center;
   }
@@ -79,11 +79,11 @@
   input:checked + .slider:before {
     transform: translateX(32px);
   }
-  #ipd-slider-container {
-    display: none;
+  .step {
+    margin-bottom: 30px;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 10px;
   }
 </style>
 </head>
@@ -91,47 +91,46 @@
 
 <h1>VR Explorer</h1>
 
-<h2>Step 1: Select Simulation</h2>
+<div class="step">
+  <h2>Step 1: Select Simulation</h2>
 
-<div>
-  <label for="audienceSelect">Audience Sizes:</label>
-  <select id="audienceSelect">
-    <option value="">--select option--</option>
-  </select>
-</div>
-
-<div>or</div>
-
-<div>
-  <label for="scenarioSelect">Special Scenarios:</label>
-  <select id="scenarioSelect">
-    <option value="">--select option--</option>
-  </select>
-</div>
-
-<h2>Step 2: Go</h2>
-<button id="goButton" disabled>Go</button>
-
-<div class="toggle-container">
   <div>
-    Safe Mode 1
-    <label class="switch">
-      <input type="checkbox" id="safeMode1">
-      <span class="slider"></span>
-    </label>
+    <label for="audienceSelect">Presentation Audiences:</label>
+    <select id="audienceSelect">
+      <option value="">--select option--</option>
+    </select>
   </div>
+
+  <div>or</div>
+
   <div>
-    Safe Mode 2
-    <label class="switch">
-      <input type="checkbox" id="safeMode2">
-      <span class="slider"></span>
-    </label>
+    <label for="scenarioSelect">Special Scenarios:</label>
+    <select id="scenarioSelect">
+      <option value="">--select option--</option>
+    </select>
   </div>
 </div>
 
-<div id="ipd-slider-container">
-  <label for="ipdSlider">Adjust IPD:</label>
-  <input type="range" id="ipdSlider" min="50" max="80" value="63">
+<div class="step">
+  <h2>Step 2: Enter Simulation</h2>
+  <button id="goButton" disabled>Go</button>
+
+  <div class="toggle-container">
+    <div>
+      Safe Mode 1
+      <label class="switch">
+        <input type="checkbox" id="safeMode1">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div>
+      Safe Mode 2
+      <label class="switch">
+        <input type="checkbox" id="safeMode2">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
 </div>
 
 <div class="footer">
@@ -201,7 +200,7 @@
   });
 
   // -----------------------------
-  // Enable Go button when selection made
+  // Enable Go button
   // -----------------------------
   const goButton = document.getElementById('goButton');
   function checkSelection() {
@@ -216,16 +215,14 @@
   scenarioSelect.addEventListener('change', checkSelection);
 
   // -----------------------------
-  // Safe Mode toggles logic
+  // Safe Mode toggles
   // -----------------------------
   const safeMode1 = document.getElementById('safeMode1');
   const safeMode2 = document.getElementById('safeMode2');
-  const ipdSliderContainer = document.getElementById('ipd-slider-container');
 
   function enforceSingleToggle(clicked) {
     if(clicked === safeMode1) safeMode2.checked = false;
     if(clicked === safeMode2) safeMode1.checked = false;
-    ipdSliderContainer.style.display = safeMode2.checked ? 'flex' : 'none';
   }
 
   safeMode1.addEventListener('change', () => enforceSingleToggle(safeMode1));
@@ -239,26 +236,66 @@
     if(!selection) return;
 
     if(safeMode1.checked) {
-      // Safe Mode 1: YouTube
+      // Safe Mode 1: YouTube fallback
       window.open(videosYouTube[selection], "_blank");
-    } else if(safeMode2.checked) {
-      // Safe Mode 2: VR player with adjustable IPD
-      startVRPlayer(videosCloudflare[selection], true);
     } else {
-      // Default Mode
-      const isiPhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      startVRPlayer(videosCloudflare[selection], false, isiPhone);
+      // Default / Safe Mode 2: VR player with A-Frame
+      startVRPlayer(selection, safeMode2.checked);
     }
   });
 
   // -----------------------------
-  // VR Player placeholder
+  // VR Player with A-Frame
   // -----------------------------
-  function startVRPlayer(videoUrl, adjustableIPD, isiPhone=false) {
-    let ipdText = adjustableIPD ? " (adjustable IPD)" : (isiPhone ? " (iPhone fixed IPD)" : " (fixed IPD)");
-    // Placeholder: In production, integrate WebGL/A-Frame dual-eye VR
-    window.open(videoUrl, "_blank");
-    console.log("VR Player launched for", videoUrl, ipdText);
+  function startVRPlayer(selection, adjustableIPD=false) {
+    // Remove existing scene if any
+    const existingScene = document.querySelector('a-scene');
+    if(existingScene) existingScene.remove();
+
+    // Create A-Frame scene
+    const scene = document.createElement('a-scene');
+    scene.setAttribute('vr-mode-ui', 'enabled: true');
+    scene.setAttribute('embedded', true);
+    scene.setAttribute('style', 'width:100vw; height:100vh; position:fixed; top:0; left:0;');
+
+    // Camera with IPD adjustment
+    const camera = document.createElement('a-entity');
+    camera.setAttribute('id', 'cameraRig');
+    camera.setAttribute('camera', 'active:true');
+    camera.setAttribute('position', '0 1.6 0');
+    camera.setAttribute('look-controls', '');
+    scene.appendChild(camera);
+
+    // Video sphere
+    const videosphere = document.createElement('a-videosphere');
+    videosphere.setAttribute('src', videosCloudflare[selection]);
+    videosphere.setAttribute('rotation', '0 -90 0');
+    scene.appendChild(videosphere);
+
+    document.body.appendChild(scene);
+
+    // IPD slider overlay for Safe Mode 2
+    if(adjustableIPD) {
+      const ipdSlider = document.createElement('input');
+      ipdSlider.type = 'range';
+      ipdSlider.min = 50;
+      ipdSlider.max = 80;
+      ipdSlider.value = 63;
+      ipdSlider.style.position = 'absolute';
+      ipdSlider.style.bottom = '20px';
+      ipdSlider.style.left = '50%';
+      ipdSlider.style.transform = 'translateX(-50%)';
+      ipdSlider.style.width = '60%';
+      ipdSlider.style.zIndex = '9999';
+      document.body.appendChild(ipdSlider);
+
+      ipdSlider.addEventListener('input', () => {
+        // Adjust left/right eye separation in real-time
+        const cameraRig = document.querySelector('#cameraRig');
+        cameraRig.setAttribute('camera', `userHeight:1.6;`);
+        cameraRig.object3D.scale.x = ipdSlider.value / 63; // scale left/right
+      });
+    }
   }
 </script>
 
