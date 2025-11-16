@@ -20,7 +20,7 @@
 
   h1 {
     text-align: center;
-    margin-bottom: 60px; /* space before Step 1 */
+    margin-bottom: 80px; /* more space before Step 1 */
   }
 
   h2 {
@@ -39,7 +39,7 @@
     display: block;
     margin-bottom: 5px;
     text-align: center;
-    font-weight: bold;
+    font-weight: normal; /* dropdown titles normal now */
   }
 
   select, button {
@@ -117,6 +117,12 @@
   input:checked + .slider:before {
     transform: translateX(32px);
   }
+
+  .or-text {
+    font-weight: bold;
+    margin: 10px 0;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -134,7 +140,7 @@
     </select>
   </div>
 
-  <div style="margin:10px 0; text-align:center;">or</div>
+  <div class="or-text">or</div>
 
   <div>
     <label for="scenarioSelect">Special Scenarios:</label>
@@ -268,17 +274,56 @@
     const selection = audienceSelect.value || scenarioSelect.value;
     if(!selection) return;
 
+    const isDesktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     if(safeMode1.checked) {
       // Safe Mode 1: YouTube fallback
       window.open(videosYouTube[selection], "_blank");
     } else {
-      // Default / Safe Mode 2: VR player with A-Frame
-      startVRPlayer(selection, safeMode2.checked);
+      // Default or Safe Mode 2
+      if(isDesktop) {
+        playDesktop360(videosCloudflare[selection]);
+      } else {
+        startVRPlayer(selection, safeMode2.checked);
+      }
     }
   });
 
   // -----------------------------
-  // VR Player with A-Frame and IPD slider
+  // Desktop full screen video
+  // -----------------------------
+  function playDesktop360(videoUrl) {
+    const oldVideo = document.getElementById('desktopVideo');
+    if(oldVideo) oldVideo.remove();
+
+    const videoEl = document.createElement('video');
+    videoEl.src = videoUrl;
+    videoEl.id = 'desktopVideo';
+    videoEl.style.position = 'fixed';
+    videoEl.style.top = '0';
+    videoEl.style.left = '0';
+    videoEl.style.width = '100%';
+    videoEl.style.height = '100%';
+    videoEl.style.objectFit = 'cover';
+    videoEl.loop = true;
+    videoEl.autoplay = true;
+    videoEl.controls = true;
+    videoEl.setAttribute('playsinline', 'true');
+    document.body.appendChild(videoEl);
+
+    if(videoEl.requestFullscreen) {
+      videoEl.requestFullscreen();
+    } else if(videoEl.webkitRequestFullscreen) {
+      videoEl.webkitRequestFullscreen();
+    } else if(videoEl.msRequestFullscreen) {
+      videoEl.msRequestFullscreen();
+    }
+
+    videoEl.play();
+  }
+
+  // -----------------------------
+  // Mobile VR player with A-Frame
   // -----------------------------
   function startVRPlayer(selection, adjustableIPD=false) {
     const existingScene = document.querySelector('a-scene');
@@ -289,7 +334,6 @@
     scene.setAttribute('vr-mode-ui', 'enabled: true');
     scene.setAttribute('style', 'width:100vw; height:100vh; position:fixed; top:0; left:0;');
 
-    // Create video element for videosphere
     const videoEl = document.createElement('video');
     videoEl.src = videosCloudflare[selection];
     videoEl.crossOrigin = 'anonymous';
